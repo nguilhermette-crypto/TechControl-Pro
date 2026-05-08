@@ -202,93 +202,62 @@ export default function TechRepair() {
               
               <form onSubmit={handleOpenOS} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Cliente Section */}
+                  {/* Checklist Section */}
+                  <div className="space-y-6">
+                    <h3 className="text-xs uppercase font-bold tracking-widest text-status-warning flex items-center gap-2">
+                      <Filter className="w-4 h-4" /> Checklist de Entrada
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        'Tela trincada', 'Tela riscada', 'Aparelho não liga',
+                        'Entrada de carga ruim', 'Bateria inchada/ruim', 'Botões falhando',
+                        'Sem áudio/som', 'Câmera com defeito', 'Face ID/Biometria', 'Molhou/Oxidado'
+                      ].map((issue) => (
+                        <div key={issue} className="flex items-center gap-2 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 cursor-pointer transition-colors group">
+                           <div className="w-4 h-4 border border-white/20 rounded group-hover:border-neon-blue transition-colors" />
+                           <span className="text-xs text-slate-400 group-hover:text-white transition-colors">{issue}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Device Info Recap */}
                   <div className="space-y-6">
                     <h3 className="text-xs uppercase font-bold tracking-widest text-neon-blue flex items-center gap-2">
-                      <User className="w-4 h-4" /> Informações do Cliente
+                      <Smartphone className="w-4 h-4" /> Informações do Dispositivo
                     </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">Nome Completo</label>
-                        <input 
-                          required
-                          value={newOS.customerName}
-                          onChange={e => setNewOS({...newOS, customerName: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-medium"
-                        />
+                    <div className="space-y-4 bg-white/5 p-5 rounded-2xl border border-white/10">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] text-slate-500 uppercase font-bold">Resumo</p>
+                          <p className="text-sm font-semibold">{newOS.brand} {newOS.model}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-500 uppercase font-bold">Cor</p>
+                          <p className="text-sm font-semibold">{newOS.color || 'Não informada'}</p>
+                        </div>
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">WhatsApp / Telefone</label>
-                        <input 
-                          required
-                          value={newOS.phone}
-                          onChange={e => setNewOS({...newOS, phone: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-medium"
-                        />
+                         <p className="text-[10px] text-slate-500 uppercase font-bold">Observações Adicionais</p>
+                         <p className="text-xs text-slate-400 italic">"{newOS.notes || 'Sem observações'}"</p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Aparelho Section */}
-                  <div className="space-y-6">
-                    <h3 className="text-xs uppercase font-bold tracking-widest text-accent-purple flex items-center gap-2">
-                      <Smartphone className="w-4 h-4" /> Detalhes do Aparelho
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">Marca</label>
-                        <input 
-                          required
-                          value={newOS.brand}
-                          onChange={e => setNewOS({...newOS, brand: e.target.value})}
-                          placeholder="Ex: Apple"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-medium"
-                        />
+                    
+                    <div className="bg-neon-blue/10 border border-neon-blue/20 p-4 rounded-xl flex items-center gap-4">
+                      <div className="w-10 h-10 bg-neon-blue rounded-lg flex items-center justify-center text-tech-black">
+                        <User className="w-6 h-6" />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">Modelo</label>
-                        <input 
-                          required
-                          value={newOS.model}
-                          onChange={e => setNewOS({...newOS, model: e.target.value})}
-                          placeholder="Ex: iPhone 13"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-medium"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">IMEI / Serial</label>
-                        <input 
-                          value={newOS.imei}
-                          onChange={e => setNewOS({...newOS, imei: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-mono text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">Cor</label>
-                        <input 
-                          value={newOS.color}
-                          onChange={e => setNewOS({...newOS, color: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-medium"
-                        />
+                        <p className="text-[10px] text-neon-blue uppercase font-bold">Cliente</p>
+                        <p className="text-sm font-bold">{newOS.customerName || 'Aguardando preenchimento...'}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-white/5">
-                  <label className="text-[10px] text-slate-500 uppercase font-bold mb-1.5 block">Observações do Técnico / Defeito Relatado</label>
-                  <textarea 
-                    rows={4}
-                    value={newOS.notes}
-                    onChange={e => setNewOS({...newOS, notes: e.target.value})}
-                    placeholder="Descreva aqui o estado visual e o problema relatado..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue"
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 btn-secondary">Cancelar</button>
-                  <button type="submit" className="flex-1 btn-primary py-4">Gerar Ordem de Serviço</button>
+                <div className="flex gap-4 pt-8">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 btn-secondary py-4">Voltar</button>
+                  <button type="submit" className="flex-1 btn-primary py-4 shadow-[0_0_30px_rgba(0,242,255,0.2)]">Gerar Ordem e Imprimir</button>
                 </div>
               </form>
             </motion.div>

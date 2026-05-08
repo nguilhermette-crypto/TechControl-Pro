@@ -13,30 +13,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({ user: null, profile: null, loading: true });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    return onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile);
-        } else {
-          setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
-  }, []);
+  const [loading] = useState(false);
+  
+  const mockProfile: UserProfile = {
+    uid: 'demo-id',
+    email: 'admin@techcontrol.pro',
+    name: 'Administrador Demo',
+    role: 'admin',
+    createdAt: new Date()
+  };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading }}>
+    <AuthContext.Provider value={{ user: { uid: 'demo-id' } as any, profile: mockProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );
