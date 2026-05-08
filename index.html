@@ -7,6 +7,26 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Patch to handle environments where window.fetch is read-only and a getter
+      // This helps prevent libraries (like node-fetch v2) from crashing when they try to polyfill fetch
+      (function() {
+        if (typeof window !== 'undefined') {
+          try {
+            var descriptor = Object.getOwnPropertyDescriptor(window, 'fetch');
+            if (descriptor && descriptor.get && !descriptor.set && descriptor.configurable !== false) {
+              var originalFetch = window.fetch;
+              Object.defineProperty(window, 'fetch', {
+                get: function() { return originalFetch; },
+                set: function(v) { console.warn('Blocked attempt to overwrite window.fetch', v); },
+                configurable: true,
+                enumerable: true
+              });
+            }
+          } catch (e) {}
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
