@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, getDocs, where } from 'firebase/firestore';
-import { db, OperationType, handleFirestoreError } from '../lib/firebase';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Search, Barcode, AlertTriangle, Filter, MoreVertical, Edit2, Trash2, Package } from 'lucide-react';
@@ -8,6 +6,43 @@ import { cn } from '../lib/utils';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+
+// Mock initial data
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: '1',
+    name: 'iPhone 13 Pro Max Screen',
+    category: 'Peças técnicas',
+    quantity: 5,
+    minQuantity: 10,
+    price: 850.00,
+    cost: 450.00,
+    barcode: '7891234567890',
+    updatedAt: new Date()
+  },
+  {
+    id: '2',
+    name: 'Cabo Lightning 1m Original',
+    category: 'Cabos',
+    quantity: 25,
+    minQuantity: 15,
+    price: 129.90,
+    cost: 45.00,
+    barcode: '7890001112223',
+    updatedAt: new Date()
+  },
+  {
+    id: '3',
+    name: 'Película de Vidro 3D iPhone 11',
+    category: 'Películas',
+    quantity: 50,
+    minQuantity: 20,
+    price: 35.00,
+    cost: 5.00,
+    barcode: '7899998887776',
+    updatedAt: new Date()
+  }
+];
 
 const productSchema = z.object({
   name: z.string().min(2, 'Nome muito curto'),
@@ -22,8 +57,8 @@ const productSchema = z.object({
 type ProductFormData = z.infer<typeof productSchema>;
 
 export default function Inventory() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -32,34 +67,20 @@ export default function Inventory() {
     resolver: zodResolver(productSchema),
   });
 
-  useEffect(() => {
-    const q = query(collection(db, 'inventory'), orderBy('updatedAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-      setProducts(prods);
-      setLoading(false);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'inventory'));
-  }, []);
-
-  const onSubmit = async (data: ProductFormData) => {
-    try {
-      if (editingProduct) {
-        await updateDoc(doc(db, 'inventory', editingProduct.id), {
-          ...data,
-          updatedAt: serverTimestamp(),
-        });
-      } else {
-        await addDoc(collection(db, 'inventory'), {
-          ...data,
-          updatedAt: serverTimestamp(),
-        });
-      }
-      setIsModalOpen(false);
-      setEditingProduct(null);
-      reset();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'inventory');
+  const onSubmit = (data: ProductFormData) => {
+    if (editingProduct) {
+      setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...data, updatedAt: new Date() } : p));
+    } else {
+      const newProduct: Product = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...data,
+        updatedAt: new Date(),
+      };
+      setProducts([newProduct, ...products]);
     }
+    setIsModalOpen(false);
+    setEditingProduct(null);
+    reset();
   };
 
   const filteredProducts = products.filter(p => 
@@ -71,14 +92,14 @@ export default function Inventory() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Estoque Inteligente</h1>
-          <p className="text-slate-500">Gestão automatizada de produtos e componentes.</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold">Estoque Inteligente</h1>
+          <p className="text-sm text-slate-500">Gestão automatizada de produtos e componentes.</p>
         </div>
         <button 
           onClick={() => { setEditingProduct(null); reset(); setIsModalOpen(true); }}
-          className="btn-primary flex items-center justify-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 py-3 px-6"
         >
           <Plus className="w-5 h-5" />
           Novo Produto
@@ -206,42 +227,42 @@ export default function Inventory() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl glass-card p-8 relative z-10"
+              className="w-full max-w-2xl glass-card p-6 md:p-8 relative z-10 max-h-[90vh] overflow-y-auto"
             >
-              <h2 className="text-2xl font-bold mb-6">{editingProduct ? 'Editar Produto' : 'Cadastrar Novo Produto'}</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-6">{editingProduct ? 'Editar Produto' : 'Cadastrar Novo Produto'}</h2>
               
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Nome do Produto</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Nome do Produto</label>
                     <input {...register('name')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue" />
                     {errors.name && <p className="text-status-error text-[10px] mt-1">{errors.name.message}</p>}
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Categoria</label>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Categoria</label>
                     <select {...register('category')} className="w-full bg-tech-black border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue">
                       <option value="">Selecione...</option>
                       {categories.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Código de Barras</label>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Código de Barras</label>
                     <input {...register('barcode')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-mono" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Custo (R$)</label>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Custo (R$)</label>
                     <input {...register('cost', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-mono" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Venda (R$)</label>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Venda (R$)</label>
                     <input {...register('price', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-mono" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Qtd Atual</label>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Qtd Atual</label>
                     <input {...register('quantity', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-mono" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 block">Qtd Mínima</label>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 block">Qtd Mínima</label>
                     <input {...register('minQuantity', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-neon-blue font-mono" />
                   </div>
                 </div>

@@ -9,14 +9,23 @@ import {
   BarChart3, 
   Settings, 
   LogOut,
-  Cpu
+  Cpu,
+  FileText,
+  DollarSign,
+  X
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { auth } from '../lib/firebase';
 import { useAuth } from './AuthProvider';
 import { cn } from '../lib/utils';
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  isMobile?: boolean;
+}
+
+export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
   const { profile } = useAuth();
   const navigate = useNavigate();
 
@@ -29,40 +38,57 @@ export function Sidebar() {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/', roles: ['admin', 'tech', 'cashier', 'staff'] },
     { icon: Package, label: 'Estoque', path: '/inventory', roles: ['admin', 'tech', 'cashier'] },
     { icon: ShoppingCart, label: 'Vendas', path: '/sales', roles: ['admin', 'cashier'] },
-    { icon: Wrench, label: 'Assistência', path: '/tech-repair', roles: ['admin', 'tech', 'cashier'] },
     { icon: Users, label: 'Clientes', path: '/customers', roles: ['admin', 'tech', 'cashier', 'staff'] },
+    { icon: Wrench, label: 'Assistência', path: '/tech-repair', roles: ['admin', 'tech', 'cashier'] },
+    { icon: FileText, label: 'Ordens de Serviço', path: '/service-orders', roles: ['admin', 'tech', 'cashier'] },
     { icon: BarChart3, label: 'Relatórios', path: '/reports', roles: ['admin'] },
+    { icon: DollarSign, label: 'Financeiro', path: '/finance', roles: ['admin'] },
+    { icon: Settings, label: 'Configurações', path: '/settings', roles: ['admin'] },
   ];
 
   const filteredItems = menuItems.filter(item => profile && item.roles.includes(profile.role));
 
   return (
-    <div className="w-64 h-screen bg-tech-black border-r border-white/10 flex flex-col fixed left-0 top-0 z-50">
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-neon-blue to-accent-purple rounded-xl flex items-center justify-center neon-glow">
-          <Cpu className="text-tech-black w-6 h-6" />
+    <div className={cn(
+      "h-screen bg-tech-black border-r border-white/10 flex flex-col z-50 transition-all duration-300",
+      isMobile ? "w-full" : "w-64 fixed left-0 top-0"
+    )}>
+      <div className="p-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-neon-blue to-accent-purple rounded-xl flex items-center justify-center neon-glow">
+            <Cpu className="text-tech-black w-6 h-6" />
+          </div>
+          <span className="font-display font-bold text-xl bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+            TechControl
+            <span className="text-neon-blue"> Pro</span>
+          </span>
         </div>
-        <span className="font-display font-bold text-xl bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-          TechControl
-          <span className="text-neon-blue"> Pro</span>
-        </span>
+        
+        {isMobile && (
+          <button 
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 px-4 mt-4 space-y-2">
+      <nav className="flex-1 px-4 mt-4 space-y-2 overflow-y-auto scrollbar-hide">
         {filteredItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => isMobile && onClose?.()}
             className={({ isActive }) => cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
               isActive 
-                ? "bg-neon-blue/10 text-neon-blue border border-neon-blue/20" 
+                ? "bg-neon-blue/10 text-neon-blue border border-neon-blue/20 shadow-[0_0_15px_rgba(0,242,255,0.1)]" 
                 : "text-slate-400 hover:text-white hover:bg-white/5"
             )}
           >
             <item.icon className="w-5 h-5" />
             <span className="font-medium">{item.label}</span>
-            {/* Hover effect highlight */}
             <motion.div 
               className="ml-auto w-1 h-1 bg-neon-blue rounded-full opacity-0 group-hover:opacity-100"
               layoutId="nav-dot"

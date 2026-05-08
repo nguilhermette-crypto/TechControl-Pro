@@ -1,22 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db, OperationType, handleFirestoreError } from '../lib/firebase';
 import { Customer } from '../types';
 import { motion } from 'motion/react';
 import { UserPlus, Search, Phone, Mail, History, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function Customers() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+const MOCK_CUSTOMERS: Customer[] = [
+  {
+    id: '1',
+    name: 'Roberto Silva',
+    phone: '(11) 98888-7777',
+    email: 'roberto.silva@email.com',
+    address: 'Av. Paulista, 1000',
+    createdAt: new Date(2023, 10, 15)
+  },
+  {
+    id: '2',
+    name: 'Maria Oliveira',
+    phone: '(11) 97777-6666',
+    email: 'maria.oli@test.com',
+    address: 'Rua Augusta, 500',
+    createdAt: new Date(2024, 1, 20)
+  }
+];
 
-  useEffect(() => {
-    const q = query(collection(db, 'customers'), orderBy('name', 'asc'));
-    return onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
-      setCustomers(data);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'customers'));
-  }, []);
+export default function Customers() {
+  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const filtered = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -90,7 +99,7 @@ export default function Customers() {
 
             <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-slate-500">
               <span>Cliente desde</span>
-              <span>{client.createdAt ? format(client.createdAt.toDate(), 'MM/yyyy') : '...'}</span>
+              <span>{client.createdAt ? format(client.createdAt as Date, 'MM/yyyy') : '...'}</span>
             </div>
           </motion.div>
         ))}

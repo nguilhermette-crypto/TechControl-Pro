@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db, OperationType, handleFirestoreError } from '../lib/firebase';
 import { OSStatus, ServiceOrder } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -21,6 +19,47 @@ import {
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 
+const MOCK_ORDERS: ServiceOrder[] = [
+  {
+    id: 'OS-882190',
+    customerName: 'Roberto Silva',
+    device: {
+      brand: 'Apple',
+      model: 'iPhone 13 Pro',
+      imei: '358821009988112',
+      color: 'Sierra Blue'
+    },
+    status: 'repairing',
+    evaluation: {
+      issues: ['Tela quebrada', 'Câmera trincada'],
+      notes: 'Aparelho sofreu queda de altura considerável.'
+    },
+    photos: [],
+    total: 1200.00,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'OS-882191',
+    customerName: 'Maria Oliveira',
+    device: {
+      brand: 'Samsung',
+      model: 'Galaxy S22',
+      imei: '357711002233445',
+      color: 'Phantom Black'
+    },
+    status: 'analysis',
+    evaluation: {
+      issues: ['Não carrega'],
+      notes: 'Cliente relata que o cabo não entra totalmente.'
+    },
+    photos: [],
+    total: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+];
+
 const statusConfig: Record<OSStatus, { label: string, color: string, icon: any }> = {
   analysis: { label: 'Em Análise', color: 'text-slate-400 bg-slate-500/10 border-slate-500/20', icon: Search },
   waiting_parts: { label: 'Aguardando Peça', color: 'text-status-warning bg-status-warning/10 border-status-warning/20', icon: AlertCircle },
@@ -30,8 +69,8 @@ const statusConfig: Record<OSStatus, { label: string, color: string, icon: any }
 };
 
 export default function TechRepair() {
-  const [orders, setOrders] = useState<ServiceOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<ServiceOrder[]>(MOCK_ORDERS);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
@@ -46,43 +85,31 @@ export default function TechRepair() {
     notes: '',
   });
 
-  const handleOpenOS = async (e: React.FormEvent) => {
+  const handleOpenOS = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const orderData = {
-        customerName: newOS.customerName,
-        device: {
-          brand: newOS.brand,
-          model: newOS.model,
-          imei: newOS.imei,
-          color: newOS.color,
-        },
-        status: 'analysis' as OSStatus,
-        evaluation: {
-          issues: [],
-          notes: newOS.notes,
-        },
-        photos: [],
-        total: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-      await addDoc(collection(db, 'serviceOrders'), orderData);
-      setIsModalOpen(false);
-      setNewOS({ customerName: '', phone: '', model: '', brand: '', imei: '', color: '', notes: '' });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'serviceOrders');
-    }
+    const orderData: ServiceOrder = {
+      id: `OS-${Math.floor(Math.random() * 900000 + 100000)}`,
+      customerName: newOS.customerName,
+      device: {
+        brand: newOS.brand,
+        model: newOS.model,
+        imei: newOS.imei,
+        color: newOS.color,
+      },
+      status: 'analysis' as OSStatus,
+      evaluation: {
+        issues: [],
+        notes: newOS.notes,
+      },
+      photos: [],
+      total: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setOrders([orderData, ...orders]);
+    setIsModalOpen(false);
+    setNewOS({ customerName: '', phone: '', model: '', brand: '', imei: '', color: '', notes: '' });
   };
-
-  useEffect(() => {
-    const q = query(collection(db, 'serviceOrders'), orderBy('updatedAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceOrder));
-      setOrders(data);
-      setLoading(false);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'serviceOrders'));
-  }, []);
 
   const filteredOrders = orders.filter(o => 
     o.id.toLowerCase().includes(searchTerm.toLowerCase()) || 

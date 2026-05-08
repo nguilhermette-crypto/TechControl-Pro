@@ -1,12 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
-import { db, OperationType, handleFirestoreError } from '../lib/firebase';
-import { Product, SaleItem, Sale } from '../types';
+import React, { useState, useRef } from 'react';
+import { Product, SaleItem } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingCart, Barcode, Trash2, Plus, Minus, CreditCard, Banknote, QrCode as Pix, ReceiptText, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
+
+// Mock inventory for lookup
+const MOCK_INVENTORY: Product[] = [
+  { id: '1', name: 'iPhone 13 Pro Max Screen', category: 'Peças', quantity: 5, minQuantity: 2, price: 850.00, cost: 450.00, barcode: '789123', updatedAt: new Date() },
+  { id: '2', name: 'Original Lightning Cable', category: 'Acessórios', quantity: 20, minQuantity: 5, price: 129.90, cost: 40.00, barcode: '789456', updatedAt: new Date() },
+];
 
 export default function Sales() {
   const [cart, setCart] = useState<SaleItem[]>([]);
@@ -27,27 +31,20 @@ export default function Sales() {
       }
       return [...prev, { id: product.id, name: product.name, price: product.price, quantity: 1 }];
     });
-    // Add success sound effect
     const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2632/2632-preview.mp3');
     audio.play().catch(() => {});
   };
 
-  const handleBarcodeSubmit = async (e?: React.FormEvent) => {
+  const handleBarcodeSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!barcode) return;
 
-    try {
-      const q = query(collection(db, 'inventory'), where('barcode', '==', barcode));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        const product = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Product;
-        addToCart(product);
-      }
-      setBarcode('');
-      inputRef.current?.focus();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'inventory');
+    const product = MOCK_INVENTORY.find(p => p.barcode === barcode);
+    if (product) {
+      addToCart(product);
     }
+    setBarcode('');
+    inputRef.current?.focus();
   };
 
   const removeFromCart = (id: string) => {
@@ -64,30 +61,13 @@ export default function Sales() {
     }));
   };
 
-  const finishSale = async () => {
+  const finishSale = () => {
     if (cart.length === 0) return;
     setIsProcessing(true);
-    try {
-      // 1. Create sale record
-      const saleData = {
-        items: cart,
-        total,
-        paymentMethod,
-        date: serverTimestamp(),
-        userId: 'some-user-id', // Use real auth here
-        profit: total * 0.4, // Simplified
-      };
-      const saleRef = await addDoc(collection(db, 'sales'), saleData);
-      
-      // 2. Update stock
-      for (const item of cart) {
-        await updateDoc(doc(db, 'inventory', item.id), {
-          quantity: increment(-item.quantity),
-          updatedAt: serverTimestamp()
-        });
-      }
-
-      setLastSaleId(saleRef.id);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLastSaleId(`SALE-${Math.floor(Math.random() * 1000000)}`);
       confetti({
         particleCount: 100,
         spread: 70,
@@ -96,11 +76,8 @@ export default function Sales() {
       });
       setShowReceipt(true);
       setCart([]);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'sales');
-    } finally {
       setIsProcessing(false);
-    }
+    }, 1000);
   };
 
   return (

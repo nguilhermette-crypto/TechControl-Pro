@@ -14,7 +14,7 @@ export interface Product {
   category: string;
   quantity: number;
   minQuantity: number;
-  barcode: string;
+  barcode?: string;
   price: number;
   cost: number;
   updatedAt: any;
@@ -53,6 +53,7 @@ export interface Customer {
   name: string;
   phone: string;
   email?: string;
+  address?: string;
   createdAt: any;
 }
 
@@ -72,7 +73,7 @@ export interface TechnicalEvaluation {
 
 export interface ServiceOrder {
   id: string;
-  customerId: string;
+  customerId?: string;
   customerName?: string;
   device: DeviceInfo;
   status: OSStatus;

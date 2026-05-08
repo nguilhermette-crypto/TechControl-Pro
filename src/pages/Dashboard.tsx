@@ -33,16 +33,16 @@ const data = [
 export default function Dashboard() {
   return (
     <div className="space-y-8 pb-12">
-      <header className="flex justify-between items-end">
+      <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Resumo Geral</h1>
-          <p className="text-slate-500">Bem-vindo ao centro de comando TechControl Pro.</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold">Resumo Geral</h1>
+          <p className="text-sm text-slate-500">Bem-vindo ao centro de comando TechControl Pro.</p>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Status do Servidor</p>
+        <div className="flex items-center justify-between md:block md:text-right">
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Status</p>
           <div className="flex items-center gap-2 text-status-success font-mono text-sm">
             <div className="w-2 h-2 rounded-full bg-status-success animate-pulse"></div>
-            Online & Sincronizado
+            Online
           </div>
         </div>
       </header>
