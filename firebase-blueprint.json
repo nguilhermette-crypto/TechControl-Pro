@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with role-based access control.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "tech", "cashier", "staff"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Stock Product",
+      "description": "Inventory items like accessories or replacement parts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "quantity": { "type": "number" },
+        "minQuantity": { "type": "number" },
+        "barcode": { "type": "string" },
+        "price": { "type": "number" },
+        "cost": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "category", "quantity", "price"]
+    },
+    "StockMovement": {
+      "title": "Stock Movement",
+      "description": "Log of stock ins and outs.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "type": { "type": "string", "enum": ["in", "out"] },
+        "quantity": { "type": "number" },
+        "reason": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["productId", "type", "quantity", "date"]
+    },
+    "Sale": {
+      "title": "Sale Record",
+      "description": "Successful sale transaction.",
+      "type": "object",
+      "properties": {
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["pix", "card", "cash", "installments"] },
+        "customerId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "profit": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["items", "total", "paymentMethod", "date"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Client information.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone"]
+    },
+    "ServiceOrder": {
+      "title": "Service Order",
+      "description": "Repair request for a device.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "device": { "type": "object" },
+        "status": { "type": "string", "enum": ["analysis", "waiting_parts", "repairing", "finished", "delivered"] },
+        "evaluation": { "type": "object" },
+        "photos": { "type": "array" },
+        "technicalReport": { "type": "string" },
+        "total": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "device", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users": { "schema": "User", "description": "System users and roles." },
+    "inventory": { "schema": "Product", "description": "Stock items." },
+    "stockMovements": { "schema": "StockMovement", "description": "Inventory audit log." },
+    "sales": { "schema": "Sale", "description": "Sales transactions." },
+    "customers": { "schema": "Customer", "description": "Client database." },
+    "serviceOrders": { "schema": "ServiceOrder", "description": "Maintenance records." }
+  }
+}

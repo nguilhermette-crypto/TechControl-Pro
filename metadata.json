@@ -1,0 +1,6 @@
+{
+  "name": "TechControl Pro",
+  "description": "Professional management system for mobile stores and technical assistance with inventory, service orders, and financial tracking.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
